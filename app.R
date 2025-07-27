@@ -7,7 +7,7 @@ library(shinydashboard)
 # Enable future support
 # plan(multisession)
 
-max_hint <- 300
+max_hint <- 3
 size <- 200
 
 # Fungsi untuk membuat puzzle awal yang dapat diselesaikan
@@ -253,7 +253,7 @@ solve_puzzle_bfs <- function(initial_puzzle) {
 
 # UI
 ui <- fluidPage(
-  titlePanel("Puzzle 8 - Susun Angka 1-8"),
+  titlePanel(h1("Puzzle8", style='font-weight: bold;')),
   
   fluidRow(
     column(5,
@@ -289,6 +289,11 @@ ui <- fluidPage(
             tags$td(uiOutput("tile_8")),
             tags$td(uiOutput("tile_9"))
           ),
+          tags$tr(
+            tags$td(""),
+            tags$td(""),
+            tags$td(""),
+          ), 
           tags$tr(
             tags$td(actionButton("new_game", "New Game", class = "btn-success btn-block")),
             tags$td(actionButton("reset_game", "Reset", class = "btn-warning btn-block")),
@@ -504,7 +509,7 @@ server <- function(input, output, session) {
 
   # Pesan hint
   output$hint_message <- renderUI({
-    if(!is.null(game_state$hint_position) & game_state$hints_used <= max_hint & !game_state$game_won) {
+    if(!is.null(game_state$hint_position) & game_state$hints_used < max_hint & !game_state$game_won) {
       div(
         style = "text-align: center; color: orange; font-size: 16px; font-weight: bold;",
         icon("lightbulb"),
