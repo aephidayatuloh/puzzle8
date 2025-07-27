@@ -1,6 +1,6 @@
 library(shiny)
 # library(shinyjs)
-library(shinydashboard)
+# library(shinydashboard)
 # library(future)
 # library(promises)
 
@@ -253,7 +253,118 @@ solve_puzzle_bfs <- function(initial_puzzle) {
 
 # UI
 ui <- fluidPage(
-  titlePanel(h1("Puzzle8", style='font-weight: bold;')),
+  # CSS untuk desain responsif
+  tags$head(
+    tags$style(HTML("
+      /* Base styles */
+      .puzzle-tile {
+        border: 2px solid #333;
+        background-color: #4CAF50;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .puzzle-tile:hover {
+        opacity: 0.9;
+        transform: scale(0.95);
+      }
+      
+      .puzzle-tile:disabled {
+        cursor: not-allowed;
+      }
+      
+      .empty-tile {
+        background-color: #f0f0f0;
+        border: 2px solid #333;
+      }
+      
+      .hint-highlight {
+        box-shadow: 0 0 15px 5px orange;
+        border: 3px solid orange !important;
+        z-index: 10;
+      }
+      
+      /* Responsive grid */
+      .puzzle-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 8px;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 10px;
+      }
+      
+      .puzzle-cell {
+        aspect-ratio: 1;
+        width: 100%;
+      }
+      
+      /* Responsive button sizes */
+      .action-button {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: clamp(12px, 2vw, 16px);
+        margin-bottom: 5px;
+      }
+      
+      /* Stats table */
+      .stats-table {
+        width: 100%;
+        margin: 15px auto;
+        text-align: center;
+        font-size: clamp(14px, 2vw, 18px);
+      }
+      
+      .stats-table td {
+        padding: 5px;
+      }
+      
+      /* Large screens */
+      @media (min-width: 992px) {
+        .puzzle-grid {
+          max-width: 400px;
+        }
+      }
+      
+      /* Medium screens */
+      @media (min-width: 768px) and (max-width: 991px) {
+        .puzzle-grid {
+          max-width: 350px;
+        }
+      }
+      
+      /* Small screens */
+      @media (max-width: 767px) {
+        .puzzle-grid {
+          max-width: 90vw;
+          grid-gap: 5px;
+        }
+        
+        .stats-table {
+          font-size: clamp(12px, 3vw, 16px);
+        }
+      }
+      
+      /* Very small screens */
+      @media (max-width: 480px) {
+        .puzzle-grid {
+          max-width: 95vw;
+          grid-gap: 3px;
+        }
+        
+        .action-button {
+          padding: 6px 8px;
+          font-size: clamp(10px, 2.5vw, 14px);
+        }
+      }
+    "))
+  ),
+  titlePanel(h1("Puzzle8", style='font-weight: bold;'), windowTitle = "Puzzle8"),
   
   fluidRow(
     column(5,
@@ -414,6 +525,7 @@ server <- function(input, output, session) {
       game_state$puzzle <- game_state$initial_puzzle
       game_state$moves <- 0
       game_state$game_won <- FALSE
+      game_state$hints_used <- 0
       game_state$hint_position <- NULL
       game_state$solution_step <- 0
       # Hitung ulang langkah optimal (seharusnya sama dengan yang disimpan)
@@ -445,7 +557,6 @@ server <- function(input, output, session) {
         # Tentukan style berdasarkan apakah ini adalah hint
         is_hint <- !is.null(game_state$hint_position) && game_state$hint_position == tile_index
         hint_style <- if(is_hint) "box-shadow: 0 0 10px 3px orange; border: 3px solid orange;" else ""
-        size <- 200
         
         if(value == 0) {
           # Kotak kosong
